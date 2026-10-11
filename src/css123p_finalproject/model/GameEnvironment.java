@@ -3,10 +3,8 @@ package css123p_finalproject.model;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-
 public class GameEnvironment {
-    private Player pOne;
-    private Player pTwo;
+    private Player player;
     private ArrayList<Mob> enemies;
     private ArrayList<Projectile> projectiles;
     private ArrayList<Projectile> enemyProjectiles;
@@ -17,8 +15,7 @@ public class GameEnvironment {
     private boolean waitingForFloorPrompt = false;
 
     public GameEnvironment() {
-        this.pOne = new Player();
-        this.pTwo = new Player();
+        this.player = new Player(150, 250, 100, 25, 10, 100, 9);
         this.enemies = new ArrayList<>();
         this.projectiles = new ArrayList<>();
         this.enemyProjectiles = new ArrayList<>();
@@ -58,19 +55,13 @@ public class GameEnvironment {
 
         switch (floor) {
             case 1:
-                for (int i = 0; i < 5; i++) {
-                    enemies.add(new Goblin(500 + (i * 40), 100 + (i * 80), 1.6, 200, 10, 5, 50));
-                }
+                for (int i = 0; i < 5; i++) enemies.add(new Goblin(500 + (i * 40), 100 + (i * 80), 1.6, 200, 10, 5, 50));
                 break;
             case 2:
-                for (int i = 0; i < 3; i++) {
-                    enemies.add(new Skeleton(450 + (i * 80), 150 + (i * 100), 1.0, 150, 25, 5, 50));
-                }
+                for (int i = 0; i < 3; i++) enemies.add(new Skeleton(450 + (i * 80), 150 + (i * 100), 1.0, 150, 25, 5, 50));
                 break;
             case 3:
-                for (int i = 0; i < 12; i++) {
-                    enemies.add(new Goblin(400 + (i * 45), 30 + (i * 40), 1.6, 250, 20, 10, 50));
-                }
+                for (int i = 0; i < 12; i++) enemies.add(new Goblin(400 + (i % 6) * 55, 130 + (i / 6) * 200 + (i % 2) * 40, 1.6, 250, 20, 10, 50));
                 break;
         }
     }
@@ -85,7 +76,6 @@ public class GameEnvironment {
             if (!mob.isAlive()) continue;
             floorCleared = false;
 
-            // Pass enemyProjectiles list to support skeletons
             mob.updateAI(player, enemies, enemyProjectiles);
 
             double distance = Math.hypot(mob.getX() - player.getX(), mob.getY() - player.getY());
@@ -97,29 +87,23 @@ public class GameEnvironment {
             }
         }
 
+        keepInsideMap();
+
         if (floorCleared) {
             if (currentFloor == 1) {
-                waitingForFloorPrompt = true; // Signal View to prompt user
+                waitingForFloorPrompt = true;
                 return;
             }
             currentFloor++;
-            if (currentFloor > 3) {
-                gameWon = true;
-            } else {
-                loadFloor(currentFloor);
-            }
+            if (currentFloor > 3) gameWon = true;
+            else loadFloor(currentFloor);
         }
 
-        // Update Player Projectiles
         Iterator<Projectile> it = projectiles.iterator();
         while (it.hasNext()) {
             Projectile p = it.next();
             p.update();
-
-            if (p.getX() < -200 || p.getX() > 1200 || p.getY() < -200 || p.getY() > 1000) {
-                it.remove();
-                continue;
-            }
+            if (p.getX() < -200 || p.getX() > 1200 || p.getY() < -200 || p.getY() > 1000) { it.remove(); continue; }
 
             boolean hit = false;
             for (Mob mob : enemies) {
@@ -133,22 +117,33 @@ public class GameEnvironment {
             if (hit) it.remove();
         }
 
-        // Update Enemy Projectiles (Collide ONLY with the Player)
         Iterator<Projectile> eIt = enemyProjectiles.iterator();
         while (eIt.hasNext()) {
             Projectile p = eIt.next();
             p.update();
-
-            if (p.getX() < -200 || p.getX() > 1200 || p.getY() < -200 || p.getY() > 1000) {
-                eIt.remove();
-                continue;
-            }
+            if (p.getX() < -200 || p.getX() > 1200 || p.getY() < -200 || p.getY() > 1000) { eIt.remove(); continue; }
 
             if (p.getX() >= player.getX() && p.getX() <= player.getX() + player.getWidth()
                     && p.getY() >= player.getY() && p.getY() <= player.getY() + player.getHeight()) {
                 player.takeDamage(p.getDamage());
                 eIt.remove();
             }
+        }
+    }
+
+    /** Stops the player and mobs from walking into walls or off the balcony. */
+    private void keepInsideMap() {
+        int px = player.getX(), py = player.getY();
+        int cx = MapLayout.clampX(px), cy = MapLayout.clampY(py);
+        if (cx != px) player.setX(cx);
+        if (cy != py) player.setY(cy);
+
+        for (Mob mob : enemies) {
+            if (!mob.isAlive()) continue;
+            int mx = mob.getX(), my = mob.getY();
+            int nx = MapLayout.clampX(mx), ny = MapLayout.clampY(my);
+            if (nx != mx) mob.setX(nx);
+            if (ny != my) mob.setY(ny);
         }
     }
 

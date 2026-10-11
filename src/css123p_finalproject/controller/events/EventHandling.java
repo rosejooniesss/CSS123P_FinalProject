@@ -11,6 +11,7 @@ public class EventHandling extends KeyAdapter {
     public int lastDirX = 1; // Default facing right
     public int lastDirY = 0;
     public boolean dashRequested = false;
+    private boolean shiftHeld = false;
 
     private void updateDirection() {
         int dx = 0;
@@ -37,6 +38,8 @@ public class EventHandling extends KeyAdapter {
         if (key == KeyEvent.VK_A || key == KeyEvent.VK_LEFT) left = true;
         if (key == KeyEvent.VK_D || key == KeyEvent.VK_RIGHT) right = true;
 
+        if (key == KeyEvent.VK_SHIFT && !shiftHeld) { dashRequested = true; shiftHeld = true; }
+
         if (key == KeyEvent.VK_1) requestedSlot = 0;
         if (key == KeyEvent.VK_2) requestedSlot = 1;
         if (key == KeyEvent.VK_3) requestedSlot = 2;
@@ -51,6 +54,7 @@ public class EventHandling extends KeyAdapter {
         if (key == KeyEvent.VK_S || key == KeyEvent.VK_DOWN) down = false;
         if (key == KeyEvent.VK_A || key == KeyEvent.VK_LEFT) left = false;
         if (key == KeyEvent.VK_D || key == KeyEvent.VK_RIGHT) right = false;
+        if (key == KeyEvent.VK_SHIFT) shiftHeld = false;
 
         updateDirection();
     }
