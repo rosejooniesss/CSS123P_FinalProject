@@ -22,3 +22,5 @@ crash.log
 .DS_Store
 Thumbs.db
 /nbproject/private/
+/build/
+/dist/

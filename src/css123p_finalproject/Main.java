@@ -5,7 +5,7 @@
 package css123p_finalproject;
 
 import javax.swing.*;
-import css123p_finalproject.view.ApplicationFrame;
+import css123p_finalproject.view.GameFrame;
 
 /**
  * Author: Group 3
@@ -26,7 +26,8 @@ public class Main {
     }
     private static void initializeApplicationFrame(){
 
-        new ApplicationFrame();
+        GameFrame frame = new GameFrame();
+        frame.setVisible(true);
         JButton ExitButton = new JButton();
 
     }
